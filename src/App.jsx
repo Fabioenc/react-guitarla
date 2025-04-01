@@ -24,13 +24,17 @@ function App() {
     
   }
 
-  // Si fuera API, usar useEffect
+  function removeFromCart(id){
+    setCart(prevCart => prevCart.filter(guitar => guitar.id !== id)) //Eliminando un elemento del carrito
+  }
+  
 
   return (
     <>
 
       <Header 
         cart={cart}
+        removeFromCart={removeFromCart}
       />
       
     <main className="container-xl mt-5">
