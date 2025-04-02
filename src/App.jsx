@@ -1,4 +1,4 @@
-import { useState} from "react"
+import { useState, useEffect} from "react"
 import Header from "../Components/Header"
 import Guitar from "../Components/Guitar"
 import { db } from "./data/db"
@@ -6,16 +6,26 @@ import { db } from "./data/db"
 
 function App() {
 
-  const [data, setData] = useState(db)
-  const [cart, setCart] = useState([])
+  const initialCart = () => {
+    const localStorageCart = localStorage.getItem('cart')
+    return localStorageCart ? JSON.parse(localStorageCart) : []
+  }
+
+  const [data] = useState(db)
+  const [cart, setCart] = useState(initialCart)
 
   const MAX_ITEMS = 5
   const MIN_ITEMS = 1
+  
+  useEffect(() => {
+    localStorage.setItem('cart', JSON.stringify(cart))
+  }, [cart])
 
   function addToCart(item){
 
     const itemExists = cart.findIndex(guitar => guitar.id === item.id)
     if(itemExists >= 0){  //existe en el carrito
+      if(cart[itemExists].quantity >= MAX_ITEMS) return
       const updatedCart = [...cart]
       updatedCart[itemExists].quantity++
       setCart(updatedCart)
@@ -24,13 +34,25 @@ function App() {
       setCart([...cart, item])
     }
 
-    
+      // saveLocalStorage( )
   }
 
   function removeFromCart(id){
     setCart(prevCart => prevCart.filter(guitar => guitar.id !== id)) //Eliminando un elemento del carrito
   }
   
+  function decreaseQuantity(id){
+    const updatedCart = cart.map(item => {
+    if(item.id === id && item.quantity > MIN_ITEMS) {
+      return{
+        ...item,
+        quantity: item.quantity - 1
+      }
+    }
+    return item
+  })
+  setCart(updatedCart)
+}
 
   function increaseQuantity(id){
     const updatedCart = cart.map(item => {
@@ -45,18 +67,13 @@ function App() {
     setCart(updatedCart)
   }
 
-  function decreaseQuantity(id){
-    const updatedCart = cart.map(item => {
-    if(item.id === id && item.quantity > MIN_ITEMS) {
-      return{
-        ...item,
-        quantity: item.quantity - 1
-      }
-    }
-    return item
-  })
-  setCart(updatedCart)
-}
+  function clearCart(){
+    setCart([])
+  }
+
+  // function saveLocalStorage(){
+   
+  // }
 
   return (
     <>
@@ -64,8 +81,9 @@ function App() {
       <Header 
         cart={cart}
         removeFromCart={removeFromCart}
+        decreaseQuantity={decreaseQuantity}
         increaseQuantity={increaseQuantity}
-        decreasyQuantity={decreaseQuantity}
+        clearCart={clearCart}
       />
       
     <main className="container-xl mt-5">
